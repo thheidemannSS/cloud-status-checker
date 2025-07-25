@@ -6,11 +6,14 @@ app = Flask(__name__)
 
 def check_sophos():
     try:
-        r = requests.get("https://status.sophos.com/api/v2/summary.json", timeout=5)
-        data = r.json()
-        return data.get("status", "unknown").lower()
-    except:
-        return "error"
+        feed = feedparser.parse("https://status.sophos.com/rss/all.rss")
+        if feed.entries:
+            title = feed.entries[0].title.lower()
+            if "incident" in title or "degraded" in title or "advisory" in title:
+                return "degraded"
+        return "operational"
+    except Exception as e:
+        return f"error: {str(e)}"
 
 def check_adobe():
     try:
@@ -43,7 +46,7 @@ def check_m365():
 
 def check_basecamp_components():
     try:
-        r = requests.get("https://37status.com/api/v2/components.json", timeout=5)
+        r = requests.get("https://37signals.statuspage.io/api/v2/components.json", timeout=5)
         components = r.json().get("components", [])
         result = {}
         for comp in components:
@@ -51,8 +54,8 @@ def check_basecamp_components():
             status = comp.get("status", "unknown")
             result[name] = status
         return result
-    except:
-        return {"basecamp_components": "error"}
+    except Exception as e:
+        return {"basecamp_components": f"error: {str(e)}"}
 
 @app.route("/status", methods=["GET"])
 def status():
