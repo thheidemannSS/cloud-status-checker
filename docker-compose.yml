@@ -3,6 +3,10 @@ services:
   cloud-status-checker:
     build: .
     container_name: cloud-status-checker
-    ports:
-      - "8050:8050"
     restart: always
+    networks:
+      kuma_macvlan:
+        ipv4_address: 10.118.0.153
+networks:
+  kuma_macvlan:
+    external: true
