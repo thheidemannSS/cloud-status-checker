@@ -38,11 +38,21 @@ def check_teamviewer():
         return "error"
 
 def check_m365():
-    try:
-        r = requests.get("https://status.office.com", timeout=5)
-        return "reachable" if r.status_code == 200 else "unreachable"
-    except:
-        return "error"
+    services = [
+        "https://outlook.office365.com",
+        "https://teams.microsoft.com", 
+        "https://login.microsoftonline.com"
+    ]
+    
+    for service in services:
+        try:
+            r = requests.get(service, timeout=5)
+            if r.status_code not in [200, 302, 401]:  # 401 ist normal bei Login-Seiten
+                return "degraded"
+        except:
+            return "degraded"
+    
+    return "operational"
 
 def check_basecamp_components():
     try:
